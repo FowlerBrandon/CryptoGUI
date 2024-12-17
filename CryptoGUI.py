@@ -64,7 +64,14 @@ class App(tk.Tk):
         tk.Label(self.frame2, text="Decryption", bg=header_color).pack()
         tk.Button(self.frame2, text="Signature", command=self.show_frame3, width=button_width, height=button_height, bg=button_color).pack(side="left", padx=20)
         tk.Button(self.frame2, text="Encryption", command=self.show_frame1, width=button_width, height=button_height, bg=button_color).pack(side="right", padx=20)
+        tk.Label(self.frame2, text="Passphrase for RSA Private Key", bg=bg_color).pack(side="top", pady=10)
+        self.passphrase = tk.Entry(self.frame2).pack(side="top", pady=20)
         tk.Button(self.frame2, text="Initiate Decryption", command=self.decrypt, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=20)
+        tk.Button(self.frame2,text="Select File to Decrypt", command= self.set_decryption_file, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=20)
+        tk.Button(self.frame2, text="Select Output File", command= self.set_output_file, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=20)
+        tk.Label(self.frame2, textvariable=self.encrypt_file_name , bg=bg_color).pack(side="top", pady=20)
+        tk.Label(self.frame2, textvariable=self.output_file_name , bg=bg_color).pack(side="top", pady=20)
+        
         decrypt_dropdown.pack(side="bottom", pady=20)
 
 
@@ -82,6 +89,12 @@ class App(tk.Tk):
         if encryption_file:
             self.encryption_file = encryption_file
             self.encrypt_file_name.set(f"File to encrypt: {encryption_file.name}")
+    
+    def set_decryption_file(self):
+        encryption_file = filedialog.askopenfile()
+        if encryption_file:
+            self.encryption_file = encryption_file
+            self.encrypt_file_name.set(f"File to decrypt: {encryption_file.name}")
             
 
     def set_output_file(self):
@@ -132,17 +145,62 @@ class App(tk.Tk):
                 key = RSA.import_key(key_open, passphrase=self.passphrase)
                 out_file = cs.encrypt_rsa(self.encryption_file.name, key)
                 open(self.output_file.name, "w").write(str(out_file))
+            else:
+                messagebox.showerror("Error", "Issue with encryption")
             
         elif self.encryption_method.get() == "AES-256-CBC":
-            out_file, iv = cs.encrypt_cbc(self.encryption_file.name, key=cs.gen_key())
+            key=cs.gen_key()
+            key_name = "AES_key.pem"
+            out_file, iv = cs.encrypt_cbc(self.encryption_file.name, key)
+            open("Keys/" + key_name, "w").write(b64encode(key).decode("utf-8"))
             open(self.output_file.name + "_iv", "w").write(iv)
             open(self.output_file.name, "w").write(str(out_file))
-        elif self.encryption_method == "ChaCha20":
-            pass
+
+        elif self.encryption_method.get() == "CHACHA20":
+            key=cs.gen_key()
+            key_name = "ChaCha20_key.pem"
+            out_file, nonce = cs.encrypt_chacha(self.encryption_file.name, key)
+            open("Keys/" + key_name, "w").write(b64encode(key).decode("utf-8"))
+            open(self.output_file.name + "_nonce", "w").write(nonce)
+            open(self.output_file.name, "w").write(str(out_file))
        
 
     def decrypt(self):
-        pass
+        if self.encryption_method.get() == "RSA-Public":
+            publicPath = "Keys/RSAPublic.pem"
+            if publicPath:
+                key_open = open(publicPath).read()
+                key = RSA.import_key(key_open)
+                # attempting to privately decrypt and RSA file flags an error in line 176 for some reason
+                # my best guess is that it is trying to use public decryption for some reason i cannot find
+                out_file = cs.decrypt_rsa(self.encryption_file.name, key)
+                open(self.output_file.name, "w").write(str(out_file))
+            else:
+                messagebox.showerror("Error", "Issue with encryption")
+
+        elif self.encryption_method.get() == "RSA-Private":
+            privatePath = "Keys/RSAPrivate.pem"
+            if privatePath:
+                key_open = open(privatePath).read()
+                key = RSA.import_key(key_open, passphrase=self.passphrase)
+                out_file = cs.decrypt_rsa(self.encryption_file.name, key)
+                open(self.output_file.name, "w").write(str(out_file))
+            else:
+                messagebox.showerror("Error", "Issue with encryption")
+
+        elif self.encryption_method.get() == "AES-256-CBC":
+            key_path = "Keys/AES_key.pem"
+            key = open(key_path).read()
+            iv = open(self.encryption_file.name + "_iv").read()
+            out_file = cs.decrypt_cbc(self.encryption_file.name, key, iv)
+            open(self.output_file.name, "w").write(str(out_file))
+
+        elif self.encryption_method.get() == "CHACHA20":
+            key_path = "Keys/ChaCha20_key.pem"
+            key = open(key_path).read()
+            nonce = open(self.encryption_file.name + "_nonce").read()
+            out_file = cs.decrypt_chacha(self.encryption_file.name, key, nonce)
+            open(self.output_file.name, "w").write(str(out_file))
 
     def show_frame1(self):
         self.frame2.pack_forget()

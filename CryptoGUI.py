@@ -100,21 +100,21 @@ class App(tk.Tk):
         tk.Button(self.frame3, text="Decryption", command=self.show_frame2, width=button_width, height=button_height, bg=button_color).pack(side="right", padx=20)
         tk.Button(self.frame3, text="Sign File", command=self.sign_file, width=button_width, height=button_height, bg=button_color).pack(side="left", padx=20)
         tk.Button(self.frame3, text="Verify Signature", command=self.verify_signature, width=button_width, height=button_height, bg=button_color).pack(side="right", padx=20)
-        tk.Label(self.frame3, text="Sign File", bg=bg_color).pack(side="top", pady=20)
-        tk.Button(self.frame3, text="Select File to Sign", command=self.set_content_file, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=20)
-        tk.Label(self.frame3, textvariable=self.content_file_label, bg=bg_color).pack(side="top", pady=20)
-        tk.Label(self.frame3, text="Password for Private Key: ", bg=bg_color).pack(side="top", pady=20)
+        tk.Label(self.frame3, text="Sign File", bg=bg_color).pack(side="top", pady=5)
+        tk.Button(self.frame3, text="Select File to Sign", command=self.set_content_file, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=5)
+        tk.Label(self.frame3, textvariable=self.content_file_label, bg=bg_color).pack(side="top", pady=5)
+        tk.Label(self.frame3, text="Password for Private Key: ", bg=bg_color).pack(side="top", pady=5)
         self.signature_passphrase = tk.Entry(self.frame3)
-        self.signature_passphrase.pack(side="top", pady=20)
-        tk.Button(self.frame3, text="Select Output File", command=self.set_sign_output, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=20)
-        tk.Label(self.frame3, textvariable=self.sign_output_label, bg=bg_color).pack(side="top", pady=20)
-        tk.Label(self.frame3, text="Verify Signature", bg=bg_color).pack(side="top", pady=20)
-        tk.Button(self.frame3, text="Select File to Verify", command=self.set_verify_file, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=20)
-        tk.Label(self.frame3, textvariable=self.verify_file_label, bg=bg_color).pack(side="top", pady=20)
-        tk.Button(self.frame3, text="Select Public Key", command=self.set_verify_pubkey, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=20)
-        tk.Label(self.frame3, textvariable=self.verify_pubkey_label, bg=bg_color).pack(side="top", pady=20)
-        tk.Button(self.frame3, text="Select File Signature", command=self.set_file_signature, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=20)
-        tk.Label(self.frame3, textvariable=self.file_signature_label, bg=bg_color).pack(side="top", pady=20)
+        self.signature_passphrase.pack(side="top", pady=5)
+        tk.Button(self.frame3, text="Select Output File", command=self.set_sign_output, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=5)
+        tk.Label(self.frame3, textvariable=self.sign_output_label, bg=bg_color).pack(side="top", pady=5)
+        tk.Label(self.frame3, text="Verify Signature", bg=bg_color).pack(side="top", pady=5)
+        tk.Button(self.frame3, text="Select File to Verify", command=self.set_verify_file, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=5)
+        tk.Label(self.frame3, textvariable=self.verify_file_label, bg=bg_color).pack(side="top", pady=5)
+        tk.Button(self.frame3, text="Select Public Key", command=self.set_verify_pubkey, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=5)
+        tk.Label(self.frame3, textvariable=self.verify_pubkey_label, bg=bg_color).pack(side="top", pady=5)
+        tk.Button(self.frame3, text="Select File Signature", command=self.set_file_signature, width=button_width, height=button_height, bg=button_color).pack(side="top", pady=5)
+        tk.Label(self.frame3, textvariable=self.file_signature_label, bg=bg_color).pack(side="top", pady=5)
         
         # Show the initial frame
         self.show_frame1()
@@ -149,7 +149,7 @@ class App(tk.Tk):
         file_signature = filedialog.askopenfile()
         if file_signature:
             self.file_signature = file_signature
-            self.file_signature_label.set(f"File Signature: {file_signature}")
+            self.file_signature_label.set(f"File Signature: {file_signature.name}")
 
 
     def set_decryption_file(self):
@@ -258,8 +258,6 @@ class App(tk.Tk):
             if publicPath:
                 key_open = open(publicPath).read()
                 key = RSA.import_key(key_open)
-                # attempting to privately decrypt and RSA file flags an error in line 176 for some reason
-                # my best guess is that it is trying to use public decryption for some reason i cannot find
                 out_file = cs.decrypt_rsa(self.decryption_file.name, key)
                 open(self.decryption_output.name, "w").write(str(out_file))
             else:
